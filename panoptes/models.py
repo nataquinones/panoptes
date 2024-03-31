@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, UniqueConstraint
 from panoptes.database import Base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -90,6 +90,8 @@ class WorkflowMessages(Base):
 
 class WorkflowJobs(Base):
     __tablename__ = 'workflow_jobs'
+    # ensures that the jobid and wf_id combination is unique across the table
+    __table_args__ = (UniqueConstraint('jobid', 'wf_id', name='_jobid_wf_id_uc'),)
     id = Column(Integer, primary_key=True)
     jobid = Column(Integer, unique=False)
     wf_id = Column(Integer, ForeignKey('workflows.id'))
