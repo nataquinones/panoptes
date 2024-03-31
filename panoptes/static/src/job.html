@@ -2,6 +2,7 @@
 
 {% block main_info %}
 
+<!--Job card-->
 <div class="card">
   <div class="card-header"><strong>job info</strong></div>
   <table class="informTable table table-responsive-sm table-outline mb-0">
@@ -9,6 +10,7 @@
     <tr>
       <th class="text-center">id</th>
       <th class="text-center">name</th>
+      <th class="text-center">wildcards</th>
       <th class="text-center">status</th>
       <th class="text-center">duration</th>
     </tr>
@@ -21,6 +23,11 @@
       <td class="text-center">
         {{ job.name }}
       </td>
+      <td>
+        {% for wc in job.wildcards.values() %}
+        <span class="badge badge-light">{{ wc }}{% if not loop.last %} {% endif %}</span>
+        {% endfor %}
+      </td>
       <td class="text-center">
         <span class="badge badge-{{ 'success' if job.status=='Done' else ('danger' if job.status=='Error' else ('info' if job.status=='Running' else 'light text-dark'))}}"> {{ job.status }} </span>
       </td>
@@ -32,6 +39,7 @@
   </table>
 </div>
 
+<!--Input card-->
 <div class="card">
   <div class="card-header">input</div>
   <table class="table table-responsive-sm table-outline mb-0">
@@ -47,7 +55,7 @@
   </table>
 </div>
 
-
+<!--Output card-->
 <div class="card">
   <div class="card-header">output</div>
   <table class="table table-responsive-sm table-outline mb-0">
@@ -63,6 +71,7 @@
   </table>
 </div>
 
+<!--Log card-->
 <div class="card">
   <div class="card-header">log path</div>
   <table class="table table-responsive-sm table-outline mb-0">

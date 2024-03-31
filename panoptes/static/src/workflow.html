@@ -2,6 +2,7 @@
 
 {% block main_info %}
 
+<!--Workflow card-->
 <div class="card">
   <div class="card-header"><strong>workflow {{workflow.id}} {{" finished after "+ (workflow.completed_at-workflow.started_at)|formatdelta if workflow.completed_at else "" }}</strong></div>
   <table class="informTable table text-center table-responsive-sm table-outline mb-0">
@@ -38,6 +39,7 @@
   </table>
 </div>
 
+<!--Progress bar-->
 <div class="card">
   <div class="card-header">progress</div>
   <div class="card-body">
@@ -54,31 +56,40 @@
   <div class="card-header"> workflow Jobs</div>
   <div class="card-body">
     <table id="jobsTable" class="informTable table text-center table-responsive-sm table-outline mb-0">
-      <thead>
-      <tr>
-        <th class="text-center">Id</th>
-        <th class="text-center">Name</th>
-        <th class="text-center">Status</th>
-        <th class="text-center">Duration</th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for job in get_jobs(workflow.id) %}
-      <tr class="tableRow">
-        <td >
-          <a href='/workflow/{{ job.workflow_id }}/job/{{ job.jobid }}'> {{ job.jobid }} </a>
-        </td>
-        <td class="nameColumn">
-          <a href='/workflow/{{ job.workflow_id }}/job/{{ job.jobid }}'> {{ job.name }} </a>
-        </td>
-        <td><span class="badge badge-{{ 'success' if job.status=='Done' else ('danger' if job.status=='Error' else ('info' if job.status=='Running' else 'light text-dark'))}}"> {{ job.status }} </span></td>
-        <td>
-         <a> {{ (job.completed_at-job.started_at)|formatdelta if job.completed_at else '-' }}</a>
-        </td>
-      </tr>
-      {% endfor %}
-
-      </tbody>
+        <thead>
+          <tr>
+            <th class="text-center">Id</th>
+            <th class="text-center">Name</th>
+            <th class="text-center">wildcards</th>
+            <th class="text-center">Status</th>
+            <th class="text-center">Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for job in get_jobs(workflow.id) %}
+            <tr class="tableRow">
+                <td>
+                    <a href='/workflow/{{ job.workflow_id }}/job/{{ job.jobid }}'> {{ job.jobid }} </a>
+                </td>
+                <td class="nameColumn">
+                    <a href='/workflow/{{ job.workflow_id }}/job/{{ job.jobid }}'> {{ job.name }} </a>
+                </td>
+                <td>
+                    {% for wc in job.wildcards.values() %}
+                    <span class="badge badge-light">{{ wc }}{% if not loop.last %} {% endif %}</span>
+                    {% endfor %}
+                </td>
+                <td>
+                    <span class="badge badge-{{ 'success' if job.status=='Done' else ('danger' if job.status=='Error' else ('info' if job.status=='Running' else 'light text-dark'))}}">
+                        {{ job.status }}
+                    </span>
+                </td>
+                <td>
+                    {{ (job.completed_at-job.started_at)|formatdelta if job.completed_at else '-' }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
   </div>
 </div>
