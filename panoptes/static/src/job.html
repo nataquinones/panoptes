@@ -87,4 +87,22 @@
   </table>
 </div>
 
+<!--Log files-->
+<div class="card bg-light">
+  {% for log in job.log_text %}
+  <div class="card-header">{{log.name}}</div>
+  <table class="table table-responsive-sm table-outline mb-0">
+    <tbody>
+    <tr>
+      <td>
+        <pre class="terminal">
+        {{log.text|safe}}
+        </pre>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  {% endfor %}
+</div>
+
 {% endblock %}

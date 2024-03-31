@@ -6,12 +6,14 @@ from flask import Flask, request, render_template, abort, send_from_directory
 from functools import wraps, update_wrapper
 from datetime import datetime
 from flask import make_response
+import os
 
 from panoptes.database import init_db, db_session
 from panoptes.models import Workflows
 from panoptes.routes import *
 from panoptes.schema_forms import SnakemakeUpdateForm
 from panoptes.server_utilities.db_queries import maintain_jobs
+from panoptes.other_utilities.log_utils import ansi_to_html
 
 app = Flask(__name__, template_folder="static/src/")
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -97,7 +99,54 @@ def get_status(id):
 
 @app.route('/workflow/<wf_id>/job/<job_id>', methods=['GET'])
 def get_job_status(wf_id, job_id):
-    return render_template('job.html', job=get_job(wf_id, job_id))
+    # get all the job data
+    job = get_job(wf_id, job_id)
+
+    # get the log folder
+    try:
+        # passed from the argument parser --log, uses cwd as default
+        log_folder = app.config['LOG_FOLDER']
+        # only for pycharm testing:
+        # log_folder = '/Users/nquinones/Desktop/snakemake_assembly/logs'
+    except:
+        # no log folder in the app.config
+        log_folder = None
+
+    # new key to store the text of the log files
+    job['log_text'] = []
+
+    if log_folder:
+        # if the log folder exists
+        try:
+            # for each log in the list
+            for log in job['log']:
+                # build the full path
+                if log_folder == os.getcwd():
+                    # if log dir is the default (cwd)
+                    log_path = os.path.join(log_folder, log)
+                else:
+                    # if log dir is specified, use base name to avoid log/log duplication
+                    base_name = os.path.basename(log)
+                    log_path = os.path.join(log_folder, base_name)
+
+                # open the log file, read the text, convert to html
+                with open(log_path, 'r') as f:
+                    log_text = f.read()
+                    log_text = ansi_to_html(log_text)
+                    # add an entry to the job dictionary
+                    job['log_text'].append({'name': log, 'text':log_text})
+        except Exception as e:
+            # if the log file cannot be read, add an entry to the job dictionary
+            job['log_text'].append({'name': '',
+                                    'text': f'...could not find/read logs. Tried in: {log_folder} \n Error: {e}'})
+    else:
+        # if no log folder in the app.config
+        # this shouldn't happen if it's being run from panotpes.py
+        job['log_text'].append({'name': '',
+                                'text': '...no log folder provided'})
+
+    return render_template('job.html',
+                           job=job)
 
 
 @app.route('/create_workflow', methods=['GET'])

@@ -3,6 +3,7 @@
 from panoptes.app import app
 from argparse import ArgumentParser, RawTextHelpFormatter
 import sys
+import os
 
 
 def main():
@@ -28,6 +29,11 @@ def main():
         default="5000",
         required=False
     )
+    parser.add_argument('--log',
+                        metavar='path',
+                        default=os.getcwd(),
+                        type=str,
+                        help='Specify the path for the log files to be read. (default: cwd)')
 
     parser.add_argument(
         "-v", "--verbose",
@@ -39,6 +45,12 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # add to config and message about --log option
+    app.config['LOG_FOLDER'] = args.log
+    if args.log == os.getcwd():
+        print(f"The --log argument was not provided. Using {args.log} as default.")
+
     app.run(host=args.ip,
             port=args.port)
 
