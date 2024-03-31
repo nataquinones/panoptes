@@ -38,18 +38,32 @@ def maintain_jobs(msg, wf_id):
 
     if "jobid" in msg_json.keys():
         if msg_json["level"] == 'job_info':
-            job = WorkflowJobs(
-                msg_json['jobid'],
-                wf_id, msg_json['msg'],
-                msg_json['name'],
-                repr(msg_json['input']),
-                repr(msg_json['output']),
-                repr(msg_json['log']),
-                repr(msg_json['wildcards']),
-                msg_json['is_checkpoint'],
+            # check if a jobid-wf_id already exists
+            job = WorkflowJobs.query.filter_by(jobid=msg_json['jobid'],
+                                               wf_id=wf_id).first()
 
-            )
-            db_session.add(job)
+            if job is None:
+                # if no job is found, create a new one
+                job = WorkflowJobs(
+                    msg_json['jobid'],
+                    wf_id, msg_json['msg'],
+                    msg_json['name'],
+                    repr(msg_json['input']),
+                    repr(msg_json['output']),
+                    repr(msg_json['log']),
+                    repr(msg_json['wildcards']),
+                    msg_json['is_checkpoint'])
+                db_session.add(job)
+            else:
+                # if a job is found, update it
+                job.msg = msg_json['msg']
+                job.name = msg_json['name']
+                job.input = repr(msg_json['input'])
+                job.output = repr(msg_json['output'])
+                job.log = repr(msg_json['log'])
+                job.wildcards = repr(msg_json['wildcards'])
+                job.is_checkpoint = msg_json['is_checkpoint']
+
             db_session.commit()
             return True
 
