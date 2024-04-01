@@ -1,194 +1,158 @@
 # ![alt text](panoptes/static/src/img/brand/panoptes.png "panoptes")
 
-
-Bioinformaticians and data scientists, rely on computational frameworks (e.g. [snakemake](https://snakemake.readthedocs.io/en/stable/), [nextflow](https://www.nextflow.io/), [CWL](https://www.commonwl.org/), [WDL](https://software.broadinstitute.org/wdl/)) to process, analyze and integrate data of various types. Such frameworks allow scientists to combine software and custom tools of different origin in a unified way, which lets them reproduce the results of others, or reuse the same pipeline on different datasets. One of the fundamental issues is that the majority of the users execute multiple pipelines at the same time, or execute a multistep pipeline for a big number of datasets, or both, making it hard to track the execution of the individual steps or monitor which of the processed datasets are complete. panoptes is a tool that monitors the execution of such workflows.
-
-panoptes is a service that can be used by:
-- Data scientists, bioinformaticians, etc. that want to have a general overview of the progress of their pipelines and the status of their jobs
-- Administrations that want to monitor their servers
-- Web developers that want to integrate the service in bigger web applications
-
-**Note:** panoptes is in early development stage and the first proof of concept server will support only workflows written in [snakemake](https://snakemake.readthedocs.io/en/stable/).
+Panoptes is a server that lets you monitor the execution of `snakemake` 
+workflows. This is my personal panoptes branch, in which I have added a 
+few features that I needed for my own workflows.
 
 # Installation
 
-Requirements:
-- Python>=3.6
-- virtualenv
-- [sqlite3](https://www.sqlite.org/download.html)
+## Install this branch
 
-## Install from pypi and run server
-
-Create virtual environment
+Create environment and activate it
 ```bash
-virtualenv -p `which python3` venv
-```
-
-Activate virtual environment
-```bash
-source venv/bin/activate
-```
-
-Install via pypi
-```bash
-pip install panoptes-ui
-```
-Run server
-```bash
-panoptes
-```
-Server should run on: 127.0.0.1:5000
-
-By default it should generate an sqlite database: .panoptes.db
-
-## Install from conda and run server
-
-Create conda environment
-```bash
-conda create --name panoptes -c conda-forge -c bioconda panoptes-ui
-```
-
-Activate conda environment
-```bash
+# with conda
+conda create -n panoptes python=3.8
 conda activate panoptes
 ```
-
-Run server
 ```bash
-panoptes
-```
-Server should run on: 127.0.0.1:5000
-
-By default it should generate an sqlite database: .panoptes.db
-
-## Install from source code and run server
-
-Clone repo
-```bash
-git clone https://github.com/panoptes-organization/panoptes.git
-```
-
-Enter repo
-```bash
-cd panoptes
-```
-
-Create virtual environment
-```bash
+# or with virtualenv
 virtualenv -p `which python3` venv
-```
-
-Activate virtual environment
-```bash
 source venv/bin/activate
 ```
 
-Install all requirements
+Install with pip
 ```bash
+# directly from github
+pip install git+https://github.com/nataquinones/panoptes.git@better-job-data
+```
+
+```bash
+# or clone the branch and install it
+git clone -b better-job-data https://github.com/nataquinones/panoptes.git
+cd panoptes # or whatever the path where you downloaded the repo is
 pip install .
 ```
 
-Run server
+# Usage
+1. To use panoptes you first need to start the server. Once installed you can run:
 ```bash
 panoptes
 ```
-Server should run on: 127.0.0.1:5000
+- The server should run on: `127.0.0.1:5000` by default. 
 
-By default it should generate an sqlite database: .panoptes.db 
-
-## Docker execution
-
-Requirements:
-- docker
-
-Pull image that is automatically built from bioconda. You can find the latest tag in the following url: https://quay.io/repository/biocontainers/panoptes-ui?tab=tags. For example:
-```
-docker pull quay.io/biocontainers/panoptes-ui:0.2.2--pyh7cba7a3_0
-```
-
-Then run the container with:
-
+2. Then, you should run your `snakemake` pipeline with the option `--wms-monitor`
 ```bash
-docker run -p 5000:5000 -it "image id" panoptes
+snakemake [options] --wms-monitor http://127.0.0.1:5000
+# or whatever ip/port you are running panoptes. See options below.
 ```
 
-> Note: In this case the database is stored within the docker image, so every time you restart the server the database will be empty. You would need to mount the volumes to make the database persistent.
+3. Go to your browser and type: `http://127.0.0.1:5000` to see the panoptes dashboard.
 
-## Docker compose execution
-
-Requirements:
-- docker
-- docker-compose
-
-Build
+## Options
 ```bash
-docker-compose build
+$panoptes -h
+
+usage: panoptes [-h] [--ip IP] [--port PORT] [--log path] [-v]
+
+panoptes: monitor computational workflows in real-time
+
+options:
+  -h, --help     show this help message and exit
+  --ip IP        Set the IP of the panoptes server [Default: 0.0.0.0]
+  --port PORT    The port of the server [Default: 5000]
+  --log path     Specify the path for the log files to be read. (default: cwd)
+  -v, --verbose  Be Verbose
 ```
 
-Run
+## How to use the `better-job-data` branch
+I worked on this branch because I wanted to be able to debug my `snakemake`
+pipelines, and for this, I wanted to see the logs of the jobs that failed. Two things
+have to happen for it to work as intended:
+1. The path for your log files should be specified in the `Snakefile`.
+2. You have to tell `panoptes` where to find the log files.
+
+### 1. Log files in the `Snakefile`
+In particular, I wanted to see the `stout` and `stderr` for each of my rules. I usually
+run my `Snakemake` pipelines in a cluster and specify the path for the `stout/stderr` in
+the `--cluster/--cluster-config` options. (That is, before Snakemake 8 😒).
+But for this part to work you need to specify the paths under `log:`, and make sure
+they're  being written out to those files (with `>` and `2>`) to the path you specify. For example:
+
+
+```python
+rule assembly:
+    input:
+        # read files
+        R1 = '{sample}_R1.fastq.gz',
+        R2 = '{sample}_R2.fastq.gz'
+    output:
+        # assembly fasta file
+        'assemblies/{sample}/assembly.fasta'
+    params:
+        outdir = 'assemblies/{sample}/'
+    log:
+        stderr = 'logs/unicycler_assembly.{sample}.err',
+        stdout = 'logs/unicycler_assembly.{sample}.out'
+    shell:
+        'unicycler ' \
+            '-1 {input.R1} ' \
+            '-2 {input.R2} ' \
+            '-o {params.outdir} '\
+            '> {log.stdout} '\
+            '2> {log.stderr}'
+```
+### 2. Tell panoptes where the log files are
+You can specify the path to the log files in the `panoptes` server. This can be done
+with the `--log` option. For example:
 ```bash
-docker-compose up -d
+panoptes --log /path/to/logs
 ```
-
-Server should run on: http://127.0.0.1:8000
-
-Stop
+If you don't specify the path, `panoptes` will look for the log files in the 
+current working directory. So, another option is to run panoptes from the same
+directory where you're running your `snakemake` pipeline. For example:
 ```bash
-docker-compose down
+cd /path/to/Snakefile
+panoptes
 ```
 
-## Singularity execution
+## How to run on a Slurm cluster:
+> TL;DR: Start a screen and an interactive job. Then -within- that initial screen you'll
+> have to make two more screens: one for panoptes and another for snakemake.
 
-You can also deploy the server with singularity. To do so pull the image with singularity. For example:
-
+1. SSH into to the cluster: 
 ```bash
-singularity pull docker://quay.io/biocontainers/panoptes-ui:0.2.2--pyh7cba7a3_0
+ssh -Y -L <PORT>:127.0.0.1:<PORT> <user>@<host>
 ```
-
-And then we can start the server by running:
+2. Start a screen:
 ```bash
-singularity exec panoptes-ui:0.2.2--pyh7cba7a3_0
+screen -R <my_screen>
+```
+3. Within the screen, initiate an interactive job:
+```bash
+(<my_screen>)$ srun -t <time> --mem <mem> --pty -p <partition> --tunnel <PORT>:<PORT> bash
 ```
 
-# Run an example workflow
+4. Make a new screen **within** <my_screen> and run panoptes.
+```bash
+(<my_screen>)$ screen -R <panoptes_screen>
+(<my_screen>)(<panoptes_screen>)$ panoptes [options]--port <PORT>
+```
 
-In order to run an example workflow please follow the instructions [here](https://github.com/panoptes-organization/snakemake_example_workflow)
+5. Detach from the nested screen (Detach only from the nested screen! If you 
+detach the usual way, you end up detaching from both)
+```
+Ctrl+a, followed by a, then d.
+```
 
-## panoptes in action
+6. Make another screen **within** <my_screen> and run snakemake.
+```bash
+(<my_screen>)$ screen -R <smk_screen>
+(<my_screen>)(<smk_screen>)$ snakemake [options] --wms-monitor http://127.0.0.1:<PORT>
+```
 
-[![Watch the video](https://img.youtube.com/vi/de-YSJmq_5s/hqdefault.jpg)](https://www.youtube.com/watch?v=de-YSJmq_5s)
+# Get in touch
+I hope you find this branch useful. If you have any questions or suggestions, please submit an
+Issue. I am currently not pursuing a pull request into the main panoptes repository,
+because it seems it is no longer in active development, but I might in the future if this
+proves useful.
 
-## panoptes API
-
-Panoptes provides the following API endpoints:
-
-Endpoint | Method | Description 
--- | -- | --
-`/api/service-info` | `GET` | Server status
-`/api/workflows` | `GET` | Get all workflows
-`/api/workflow/<workflow-id>` | `GET` | Get workflow status
-`/api/workflow/<workflow-id>/jobs` | `GET` | Get all jobs of a workflow
-`/api/workflow/<workflow-id>/job/<job-id>` | `GET` | Get job status
-`/api/workflow/<workflow-id>` | `PUT` | Rename a workflow  <br>  Expects a dictionary with new name <br> (e.g. `{'name': 'my new workflow name'}`)
-`/api/workflow/<workflow-id>` | `DELETE` | Delete a workflow
-`/api/workflows/all` | `DELETE` | Clean up database
-
-To communicate with panoptes the following endpoints are used by snakemake:
-
-Endpoint | Method | Description 
--- | -- | --
-`/api/service-info` | `GET` | Server status (same as above)
-`/create_workflow` | `GET` | Get a unique id/name str(uuid.uuid4()) for each workflow
-`/update_workflow_status` | `POST` | Panoptes receives a dictionary from snakemake that contains: <br> - A log message dictionary <br> - The current timestamp <br> - The unique id/name of the workflow. <br> (e.g. `{'msg': repr(msg), 'timestamp': time.asctime(), 'id': id}`)
-
-# Contribute
-
-Please see the [Contributing instructions](CONTRIBUTING.md).
-
-## CI server
-
-Changes in develop or master trigger a [GitHub Actions](https://github.com/panoptes-organization/panoptes/actions) build (and runs tests)
-
-# Contact
-
-In case the [issues section](https://github.com/panoptes-organization/panoptes/issues) is not enough for you, you can also contact us via [discord](https://discord.gg/vMcZCVZ)
