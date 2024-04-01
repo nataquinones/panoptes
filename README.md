@@ -115,6 +115,18 @@ cd /path/to/Snakefile
 panoptes
 ```
 
+### How do the changes look in the panoptes dashboard?
+For each workflow, you can now see more detailed information about the jobs:
+<img src="doc/img/workflow.png" alt="workflow" width="400"/>
+
+You can filter the table by the status of the jobs, by the rule 
+name, wildcards, or any other property of the table:
+<img src="doc/img/search_rule.png" alt="workflow" width="400"/>
+<img src="doc/img/search_status.png" alt="workflow" width="400"/>
+
+In the job page, you can see the log files of the job:
+<img src="doc/img/job.png" alt="workflow" width="400"/>
+
 ## How to run on a Slurm cluster:
 > TL;DR: Start a screen and an interactive job. Then -within- that initial screen you'll
 > have to make two more screens: one for panoptes and another for snakemake.
