@@ -1,20 +1,18 @@
 {% extends "index.html" %}
 
 {% block main_info %}
+<h1>Workflows</h1>
 <div class="card">
   <div class="card-body">
     <table id="workFlowsTable" class="fullTable table table-responsive-sm stripe table-outline mb-0">
       <thead>
       <tr>
-        <th>Id
-        </th>
-        <th >Name
-
-        </th>
-        <th class="text-center">Status</th>
-        <th class="text-center">Date</th>
-        <th class="text-center">Current jobs</th>
-        <th class="text-center">Actions</th>
+        <th>workflow id</th>
+        <th>name</th>
+        <th class="text-center">status*</th>
+        <th class="text-center">date</th>
+        <th class="text-center">current jobs</th>
+        <th class="text-center"></th>
       </tr>
       </thead>
       <tbody>
@@ -45,5 +43,10 @@
     </table>
   </div>
 </div>
+* The <span class="badge badge-danger">Error</span> status means that <i>something</i> in the workflow has failed, not necessarily that
+the workflow has failed or stopped.
+{% endblock %}
+
+{% block scripts %}
 
 {% endblock %}

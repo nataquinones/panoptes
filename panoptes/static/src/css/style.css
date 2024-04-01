@@ -5106,6 +5106,37 @@ a.badge-dark:focus, a.badge-dark.focus {
   box-shadow: 0 0 0 0.2rem rgba(47, 53, 58, 0.5);
 }
 
+
+.badge-wc {
+  color: #23282c;
+  background-color: #e2e2e3;
+}
+
+a.badge-wc:hover, a.badge-wc:focus {
+  color: #23282c;
+  background-color: #d1dbe1;
+}
+
+a.badge-wc:focus, a.badge-wc.focus {
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(240, 243, 245, 0.5);
+}
+
+.badge-rule {
+  color: #fff;
+  background-color: #0a5493;
+}
+
+a.badge-rule:hover, a.badge-rule:focus {
+  color: #fff;
+  background-color: #181b1e;
+}
+
+a.badge-rule:focus, a.badge-rule.focus {
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(47, 53, 58, 0.5);
+}
+
 .jumbotron {
   padding: 2rem 1rem;
   margin-bottom: 2rem;

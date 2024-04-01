@@ -2,14 +2,15 @@
 
 {% block main_info %}
 
+<h1>Job {{ job.jobid }}</h1>
 <!--Job card-->
 <div class="card">
-  <div class="card-header"><strong>job info</strong></div>
+<!--  <div class="card-header"><strong>job info</strong></div>-->
   <table class="informTable table table-responsive-sm table-outline mb-0">
     <thead class="thead-light">
     <tr>
       <th class="text-center">id</th>
-      <th class="text-center">name</th>
+      <th class="text-center">rule</th>
       <th class="text-center">wildcards</th>
       <th class="text-center">status</th>
       <th class="text-center">duration</th>
@@ -21,11 +22,11 @@
       {{ job.jobid }}
       </td>
       <td class="text-center">
-        {{ job.name }}
+        <span class="badge badge-rule">{{ job.name }}</span>
       </td>
       <td>
         {% for wc in job.wildcards.values() %}
-        <span class="badge badge-light">{{ wc }}{% if not loop.last %} {% endif %}</span>
+        <span class="badge badge-wc">{{ wc }}{% if not loop.last %} {% endif %}</span>
         {% endfor %}
       </td>
       <td class="text-center">
@@ -41,7 +42,7 @@
 
 <!--Input card-->
 <div class="card">
-  <div class="card-header">input</div>
+  <div class="card-header">Input</div>
   <table class="table table-responsive-sm table-outline mb-0">
     <tbody>
     {% for in in job.input %}
@@ -57,7 +58,7 @@
 
 <!--Output card-->
 <div class="card">
-  <div class="card-header">output</div>
+  <div class="card-header">Output</div>
   <table class="table table-responsive-sm table-outline mb-0">
     <tbody>
     {% for out in job.output %}
@@ -73,7 +74,7 @@
 
 <!--Log card-->
 <div class="card">
-  <div class="card-header">log path</div>
+  <div class="card-header">Log</div>
   <table class="table table-responsive-sm table-outline mb-0">
     <tbody>
     {% for logs in job.log %}
